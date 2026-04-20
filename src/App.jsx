@@ -1,41 +1,35 @@
 import { useState, useMemo, useEffect, memo } from "react";
 import { Search, X, Share2, RotateCcw, ArrowLeft, Check, Bus, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
-/*
- * 이승윤 디스코그래피 (2026.04 기준)
- * 출처: 나무위키 음반 목록 / Apple Music / 벅스 / 위키백과 / 가사 사이트 / 언론 기사 교차 검증
- */
-
 const ALBUMS = {
   MUEOL: { name: "무얼 훔치지", year: 2016, type: "정규 1집", cover: { bg: "#4A3728", accent: "#E8D4A3", style: "hands", label: "窃" } },
-  RUINS: { name: "폐허가 된다 해도", year: 2021, type: "정규 2집", cover: { bg: "#D9C8A5", accent: "#3A2A18", style: "disc", label: "◉" } },
-  SHELTER: { name: "꿈의 거처", year: 2023, type: "정규 3집", cover: { bg: "#2A3B7A", accent: "#E8D4FF", style: "orb", label: "✵" } },
-  YEOKSEONG: { name: "역성", year: 2024, type: "정규 4집", cover: { bg: "#0E0E0E", accent: "#D63333", style: "cracked", label: "易聲" } },
-  MOON: { name: "달이 참 예쁘다고", year: 2018, type: "EP", cover: { bg: "#1B2845", accent: "#F4E5B8", style: "moon", label: "☾" } },
-  DAWN: { name: "새벽이 빌려 준 마음", year: 2019, type: "EP", cover: { bg: "#5B4E7A", accent: "#F4E5B8", style: "dawn", label: "曉" } },
-  ODEUL: { name: "오늘도", year: 2013, type: "디지털 싱글", cover: { bg: "#8B6F47", accent: "#F5E6D3", style: "minimal", label: "今" } },
-  BANYEOK: { name: "반역가들", year: 2013, type: "디지털 싱글", cover: { bg: "#3D1F1F", accent: "#E8A87C", style: "minimal", label: "反" } },
+  RUINS: { name: "폐허가 된다 해도", year: 2021, type: "정규 2집", cover: { bg: "#D9C8A5", accent: "#3A2A18", style: "disc", label: "◉" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/50/ed/98/50ed98a6-79f7-748a-0d97-25cd3b263bc3/LSY_1118_3000.jpg/600x600bb.jpg" },
+  SHELTER: { name: "꿈의 거처", year: 2023, type: "정규 3집", cover: { bg: "#2A3B7A", accent: "#E8D4FF", style: "orb", label: "✵" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/ea/46/5d/ea465d89-c4f8-6c80-b123-11cbac5f8043/cover_KM0016767_1.jpg/600x600bb.jpg" },
+  YEOKSEONG: { name: "역성", year: 2024, type: "정규 4집", cover: { bg: "#0E0E0E", accent: "#D63333", style: "cracked", label: "易聲" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/56/ab/62/56ab6279-0574-2dfb-e5f8-6b0e80c2137a/cover_KM0020509_1.jpg/600x600bb.jpg" },
+  MOON: { name: "달이 참 예쁘다고", year: 2018, type: "EP", cover: { bg: "#1B2845", accent: "#F4E5B8", style: "moon", label: "☾" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d5/8a/df/d58adf8f-2f8d-3181-6cdb-8df793a90fd6/859728568404.jpg/600x600bb.jpg" },
+  DAWN: { name: "새벽이 빌려 준 마음", year: 2019, type: "EP", cover: { bg: "#5B4E7A", accent: "#F4E5B8", style: "dawn", label: "曉" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/ac/27/d4/ac27d465-f5f3-d88d-b92b-541de8c79291/859734289065.jpg/600x600bb.jpg" },
+  ODEUL: { name: "오늘도", year: 2013, type: "디지털 싱글", cover: { bg: "#8B6F47", accent: "#F5E6D3", style: "minimal", label: "今" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/62/7b/4a/627b4a93-fcb1-d66f-5be7-9ae7860b4c08/8809717491918.jpg/600x600bb.jpg" },
+  BANYEOK: { name: "반역가들", year: 2013, type: "디지털 싱글", cover: { bg: "#3D1F1F", accent: "#E8A87C", style: "minimal", label: "反" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/e5/e3/cf/e5e3cf48-8b48-d64f-b6d2-39dd4d5b682e/8809390304963.jpg/600x600bb.jpg" },
   JISIK: { name: "지식보다 거대한 우주에는", year: 2017, type: "디지털 싱글", cover: { bg: "#0D1B3D", accent: "#F5C842", style: "minimal", label: "宙" } },
   EOBUBEO: { name: "어버버버", year: 2020, type: "디지털 싱글", cover: { bg: "#6B4226", accent: "#F4D8B0", style: "minimal", label: "어" } },
-  SUMMER1995: { name: "1995년 여름", year: 2022, type: "디지털 싱글", cover: { bg: "#5E8B47", accent: "#F4E5B8", style: "minimal", label: "夏" } },
+  SUMMER1995: { name: "1995년 여름", year: 2022, type: "디지털 싱글", cover: { bg: "#5E8B47", accent: "#F4E5B8", style: "minimal", label: "夏" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/86/cf/63/86cf635b-8957-f566-1b0e-b6d338b6bbb6/Seung-YoonLee_TheSummerOf1995_3000.jpg/600x600bb.jpg" },
   HERO: { name: "영웅 수집가", year: 2022, type: "디지털 싱글", cover: { bg: "#7A1F2E", accent: "#F5D5A8", style: "minimal", label: "英" } },
-  UNSPOKEN: { name: "들려주고 싶었던", year: 2021, type: "디지털 싱글", cover: { bg: "#3D2E4E", accent: "#E8B4BC", style: "dots", label: "U" } },
-  UTEO: { name: "웃어주었어", year: 2022, type: "디지털 싱글", cover: { bg: "#E8A87C", accent: "#2F2F2F", style: "smile", label: "◡" } },
-  SUKCHWI: { name: "비싼 숙취", year: 2023, type: "디지털 싱글", cover: { bg: "#7A1F2E", accent: "#F5D5A8", style: "wave", label: "酉" } },
+  UNSPOKEN: { name: "들려주고 싶었던", year: 2021, type: "디지털 싱글", cover: { bg: "#3D2E4E", accent: "#E8B4BC", style: "dots", label: "U" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/8a/f2/6e/8af26eb0-8e5c-1724-1107-b37e199330b2/cover-_ONLINE_COVER_0616.jpg/600x600bb.jpg" },
+  UTEO: { name: "웃어주었어", year: 2022, type: "디지털 싱글", cover: { bg: "#E8A87C", accent: "#2F2F2F", style: "smile", label: "◡" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/16/c0/8f/16c08f41-ca19-9084-841a-fd9546b318a6/cover_KM0016552_1.jpg/600x600bb.jpg" },
+  SUKCHWI: { name: "비싼 숙취", year: 2023, type: "디지털 싱글", cover: { bg: "#7A1F2E", accent: "#F5D5A8", style: "wave", label: "酉" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/80/05/b1/8005b12b-38b7-db23-4fdf-038033e8dc2e/cover_KM0016712_1.jpg/600x600bb.jpg" },
   YEOBAEK: { name: "여백 한켠에", year: 2024, type: "디지털 싱글", cover: { bg: "#F5F1E8", accent: "#2C2C2C", style: "minimal", label: "餘" } },
-  PUNKANON: { name: "PunKanon", year: 2025, type: "디지털 싱글", cover: { bg: "#1F1F1F", accent: "#00D9A3", style: "bars", label: "P" } },
+  PUNKANON: { name: "PunKanon", year: 2025, type: "디지털 싱글", cover: { bg: "#1F1F1F", accent: "#00D9A3", style: "bars", label: "P" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a4/00/1c/a4001c09-5439-a499-3e7c-b88c1b32cd29/cover_KM0023309_1.jpg/600x600bb.jpg" },
   HEOTUN: { name: "허튼소리 (알라리깡숑)", year: 2020, type: "밴드 EP", cover: { bg: "#2D4A3E", accent: "#F4D8B0", style: "band", label: "A·K" } },
-  OST_LAW: { name: "로스쿨 OST", year: 2021, type: "OST", cover: { bg: "#1A2942", accent: "#F5C842", style: "ost", label: "♪" } },
-  OST_MINE: { name: "마인 OST", year: 2021, type: "OST", cover: { bg: "#3B1A2D", accent: "#E8D4A3", style: "ost", label: "♪" } },
-  OST_LIKE: { name: "너를 닮은 사람 OST", year: 2021, type: "OST", cover: { bg: "#4A3B52", accent: "#F4E5B8", style: "ost", label: "♪" } },
-  OST_SUMMER: { name: "그 해 우리는 OST", year: 2022, type: "OST", cover: { bg: "#E8D4A3", accent: "#5C3B1F", style: "ost", label: "♪" } },
-  OST_MENTAL: { name: "멘탈코치 제갈길 OST", year: 2022, type: "OST", cover: { bg: "#1E4D3B", accent: "#F2E8D0", style: "ost", label: "♪" } },
-  OST_STAR: { name: "별들에게 물어봐 OST", year: 2025, type: "OST", cover: { bg: "#0D1B3D", accent: "#F5C842", style: "ost", label: "★" } },
-  OST_ISLAND: { name: "보물섬 OST", year: 2025, type: "OST", cover: { bg: "#2A4D3A", accent: "#D4A574", style: "ost", label: "♪" } },
+  OST_LAW: { name: "로스쿨 OST", year: 2021, type: "OST", cover: { bg: "#1A2942", accent: "#F5C842", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1a/71/47/1a7147ef-a51f-b465-65d5-c62ef348f6bd/OST_Part_1.jpg/600x600bb.jpg" },
+  OST_MINE: { name: "마인 OST", year: 2021, type: "OST", cover: { bg: "#3B1A2D", accent: "#E8D4A3", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/8d/de/c5/8ddec5c2-10b5-feab-130f-bf42bc83e185/888272080919_Cover.jpg/600x600bb.jpg" },
+  OST_LIKE: { name: "너를 닮은 사람 OST", year: 2021, type: "OST", cover: { bg: "#4A3B52", accent: "#F4E5B8", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2b/09/ab/2b09ab06-59ab-3688-2bb1-8fe94702bd59/8809838632214.jpg/600x600bb.jpg" },
+  OST_SUMMER: { name: "그 해 우리는 OST", year: 2022, type: "OST", cover: { bg: "#E8D4A3", accent: "#5C3B1F", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/98/21/f2/9821f226-2881-b64d-34e4-9db1170271be/191953156569.jpg/600x600bb.jpg" },
+  OST_MENTAL: { name: "멘탈코치 제갈길 OST", year: 2022, type: "OST", cover: { bg: "#1E4D3B", accent: "#F2E8D0", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/df/d9/8c/dfd98c83-4891-edbd-2a52-17c1f740c5a0/888272106626_Cover.jpg/600x600bb.jpg" },
+  OST_STAR: { name: "별들에게 물어봐 OST", year: 2025, type: "OST", cover: { bg: "#0D1B3D", accent: "#F5C842", style: "ost", label: "★" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/8f/c7/53/8fc7537d-8698-fd9e-75ec-47d64589aa49/cover_KM0021293_1.jpg/600x600bb.jpg" },
+  OST_ISLAND: { name: "보물섬 OST", year: 2025, type: "OST", cover: { bg: "#2A4D3A", accent: "#D4A574", style: "ost", label: "♪" }, coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2b/4b/bd/2b4bbd0c-3652-aa74-7454-c27e3ff56792/8800303153227.jpg/600x600bb.jpg" },
 };
 
 const SONGS = [
-  // 정규 1집 『무얼 훔치지』
   { id: 1, title: "푸념", album: "MUEOL" },
   { id: 2, title: "천문학자는 아니지만", album: "MUEOL" },
   { id: 3, title: "그림자 위로", album: "MUEOL" },
@@ -45,8 +39,6 @@ const SONGS = [
   { id: 7, title: "잠 좀 쳐자", album: "MUEOL" },
   { id: 8, title: "한 모금의 노래", album: "MUEOL" },
   { id: 9, title: "무얼 훔치지", album: "MUEOL" },
-
-  // 정규 2집 『폐허가 된다 해도』
   { id: 101, title: "누군가를 사랑하는 사람다운 말", album: "RUINS" },
   { id: 102, title: "교재를 펼쳐봐", album: "RUINS" },
   { id: 103, title: "폐허가 된다 해도", album: "RUINS" },
@@ -56,8 +48,6 @@ const SONGS = [
   { id: 107, title: "코미디여 오소서", album: "RUINS" },
   { id: 108, title: "커다란 마음", album: "RUINS" },
   { id: 109, title: "흩어진 꿈을 모아서", album: "RUINS" },
-
-  // 정규 3집 『꿈의 거처』
   { id: 201, title: "영웅 수집가", album: "SHELTER" },
   { id: 202, title: "말로장생", album: "SHELTER" },
   { id: 203, title: "누구누구누구", album: "SHELTER" },
@@ -70,8 +60,6 @@ const SONGS = [
   { id: 210, title: "기도보다 아프게", album: "SHELTER" },
   { id: 211, title: "한 모금의 노래", album: "SHELTER" },
   { id: 212, title: "애칭", album: "SHELTER" },
-
-  // 정규 4집 『역성』
   { id: 301, title: "인투로", album: "YEOKSEONG" },
   { id: 302, title: "폭죽타임", album: "YEOKSEONG" },
   { id: 303, title: "검을 현", album: "YEOKSEONG" },
@@ -87,22 +75,16 @@ const SONGS = [
   { id: 313, title: "폭포", album: "YEOKSEONG" },
   { id: 314, title: "끝을 거슬러", album: "YEOKSEONG" },
   { id: 315, title: "들키고 싶은 마음에게", album: "YEOKSEONG" },
-
-  // EP 『달이 참 예쁘다고』
   { id: 401, title: "새롭게 쓰고 싶어", album: "MOON" },
   { id: 402, title: "빗 속에서", album: "MOON" },
   { id: 403, title: "우주 like 섬띵 투 드링크", album: "MOON" },
   { id: 404, title: "달이 참 예쁘다고", album: "MOON" },
   { id: 405, title: "무명성 지구인", album: "MOON" },
-
-  // EP 『새벽이 빌려 준 마음』
   { id: 501, title: "뒤척이는 허울", album: "DAWN" },
   { id: 502, title: "관광지 사람들", album: "DAWN" },
   { id: 503, title: "구겨진 하루를", album: "DAWN" },
   { id: 504, title: "새벽이 빌려 준 마음", album: "DAWN" },
   { id: 505, title: "정말 다행이군", album: "DAWN" },
-
-  // 디지털 싱글
   { id: 601, title: "오늘도", album: "ODEUL" },
   { id: 602, title: "반역가들", album: "BANYEOK" },
   { id: 603, title: "지식보다 거대한 우주에는", album: "JISIK" },
@@ -114,8 +96,6 @@ const SONGS = [
   { id: 609, title: "비싼 숙취 (Single)", album: "SUKCHWI" },
   { id: 610, title: "여백 한켠에", album: "YEOBAEK" },
   { id: 611, title: "PunKanon", album: "PUNKANON" },
-
-  // 알라리깡숑 EP 『허튼소리』
   { id: 701, title: "허튼소리", album: "HEOTUN" },
   { id: 702, title: "가짜 꿈", album: "HEOTUN" },
   { id: 703, title: "사자를 보러 가자", album: "HEOTUN" },
@@ -123,8 +103,6 @@ const SONGS = [
   { id: 705, title: "굳이 진부하자면", album: "HEOTUN" },
   { id: 706, title: "바까씨온", album: "HEOTUN" },
   { id: 707, title: "게인 주의", album: "HEOTUN" },
-
-  // OST
   { id: 801, title: "We are", album: "OST_LAW" },
   { id: 802, title: "This is mine", album: "OST_MINE" },
   { id: 803, title: "I am lost", album: "OST_LIKE" },
@@ -136,38 +114,13 @@ const SONGS = [
 
 const MAX_PICKS = 5;
 
-// 모의 전체 투표 데이터 — 각 곡별 득표수 (많은 순으로 정렬되어 결과 화면 TOP에 노출)
 const MOCK_VOTES = {
-  304: 2841, // 역성
-  313: 2634, // 폭포
-  611: 2412, // PunKanon
-  205: 2103, // 시적 허용
-  315: 1987, // 들키고 싶은 마음에게
-  103: 1842, // 폐허가 된다 해도
-  204: 1754, // 꿈의 거처
-  207: 1621, // 야생마
-  302: 1543, // 폭죽타임
-  303: 1487, // 검을 현
-  702: 1342, // 가짜 꿈
-  211: 1287, // 한 모금의 노래
-  109: 1203, // 흩어진 꿈을 모아서
-  404: 1154, // 달이 참 예쁘다고
-  203: 1098, // 누구누구누구
-  405: 1034, // 무명성 지구인
-  308: 987,  // 내게로 불어와
-  607: 912,  // 들려주고 싶었던
-  503: 876,  // 구겨진 하루를
-  504: 823,  // 새벽이 빌려 준 마음
-  107: 798,  // 코미디여 오소서
-  104: 754,  // 도킹
-  501: 721,  // 뒤척이는 허울
-  704: 687,  // 날아가자
-  209: 654,  // 웃어주었어
-  208: 621,  // 비싼 숙취
-  310: 587,  // 너의 둘레
-  706: 543,  // 바까씨온
-  102: 512,  // 교재를 펼쳐봐
-  101: 487,  // 누군가를 사랑하는 사람다운 말
+  304: 2841, 313: 2634, 611: 2412, 205: 2103, 315: 1987,
+  103: 1842, 204: 1754, 207: 1621, 302: 1543, 303: 1487,
+  702: 1342, 211: 1287, 109: 1203, 404: 1154, 203: 1098,
+  405: 1034, 308: 987, 607: 912, 503: 876, 504: 823,
+  107: 798, 104: 754, 501: 721, 704: 687, 209: 654,
+  208: 621, 310: 587, 706: 543, 102: 512, 101: 487,
 };
 
 const C = {
@@ -184,9 +137,27 @@ const C = {
   handybus: "#00E0A8",
 };
 
-// ============ 앨범 커버 ============
 const AlbumCover = memo(function AlbumCover({ album, size = 48 }) {
   if (!album) return <div style={{ width: size, height: size, background: "#333" }} />;
+
+  // 실제 앨범 이미지가 있으면 이미지로 표시
+  if (album.coverUrl) {
+    return (
+      <img
+        src={album.coverUrl}
+        alt={album.name}
+        style={{
+          width: size,
+          height: size,
+          objectFit: "cover",
+          flexShrink: 0,
+          display: "block",
+        }}
+        loading="lazy"
+      />
+    );
+  }
+
   const { bg, accent, style, label } = album.cover;
 
   const baseStyle = {
@@ -353,95 +324,6 @@ const AlbumCover = memo(function AlbumCover({ album, size = 48 }) {
   );
 });
 
-export default function App() {
-  const [screen, setScreen] = useState("home");
-  const [selected, setSelected] = useState([]); // Set of song ids (순서 무관)
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    const fontId = "lsy-concert-fonts";
-    if (document.getElementById(fontId)) return;
-
-    const preconnect1 = document.createElement("link");
-    preconnect1.rel = "preconnect";
-    preconnect1.href = "https://fonts.googleapis.com";
-    document.head.appendChild(preconnect1);
-
-    const preconnect2 = document.createElement("link");
-    preconnect2.rel = "preconnect";
-    preconnect2.href = "https://fonts.gstatic.com";
-    preconnect2.crossOrigin = "anonymous";
-    document.head.appendChild(preconnect2);
-
-    const link = document.createElement("link");
-    link.id = fontId;
-    link.href = "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-  }, []);
-
-  const filteredSongs = useMemo(() => {
-    if (!search.trim()) return SONGS;
-    const q = search.toLowerCase();
-    return SONGS.filter(s => {
-      const album = ALBUMS[s.album];
-      return s.title.toLowerCase().includes(q) ||
-             (album && album.name.toLowerCase().includes(q));
-    });
-  }, [search]);
-
-  const toggleSelect = (songId) => {
-    if (selected.includes(songId)) {
-      setSelected(selected.filter(id => id !== songId));
-    } else if (selected.length < MAX_PICKS) {
-      setSelected([...selected, songId]);
-    }
-  };
-
-  const resetAll = () => {
-    setSelected([]);
-    setScreen("home");
-    setSearch("");
-  };
-
-  // 결과 화면에 쓸 TOP 랭킹 (전체 팬 투표 많은 순)
-  const topRanking = useMemo(() => {
-    return Object.entries(MOCK_VOTES)
-      .map(([id, votes]) => ({ songId: Number(id), votes }))
-      .sort((a, b) => b.votes - a.votes);
-  }, []);
-
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: C.bg,
-      fontFamily: "'Noto Sans KR', sans-serif",
-      color: C.textPrimary,
-      WebkitFontSmoothing: "antialiased",
-    }}>
-      {screen === "home" && <HomeScreen onStart={() => setScreen("select")} />}
-      {screen === "select" && (
-        <SelectScreen
-          songs={filteredSongs}
-          selected={selected}
-          search={search}
-          setSearch={setSearch}
-          toggleSelect={toggleSelect}
-          onBack={() => setScreen("home")}
-          onComplete={() => setScreen("result")}
-        />
-      )}
-      {screen === "result" && (
-        <ResultScreen
-          selected={selected}
-          topRanking={topRanking}
-          onReset={resetAll}
-        />
-      )}
-    </div>
-  );
-}
-
 function HomeScreen({ onStart }) {
   return (
     <div style={{
@@ -521,6 +403,108 @@ function HomeScreen({ onStart }) {
     </div>
   );
 }
+
+function ProgressTrack({ selected }) {
+  return (
+    <div style={{ display: "flex", gap: 3 }}>
+      {Array.from({ length: MAX_PICKS }, (_, i) => {
+        const filled = i < selected.length;
+        return (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              height: 3,
+              background: filled ? C.accent : C.border,
+              transition: "background 0.2s",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+const SongCard = memo(function SongCard({ song, isSelected, onToggle, disabled }) {
+  const album = ALBUMS[song.album];
+
+  return (
+    <button
+      onClick={onToggle}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: 10,
+        background: isSelected ? C.surface : "transparent",
+        border: isSelected
+          ? `1px solid ${C.accent}`
+          : `1px solid ${C.border}`,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.35 : 1,
+        textAlign: "left",
+        width: "100%",
+        transition: "all 0.15s",
+        fontFamily: "inherit",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled && !isSelected) {
+          e.currentTarget.style.background = C.surfaceHover;
+          e.currentTarget.style.borderColor = C.textMuted;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled && !isSelected) {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.borderColor = C.border;
+        }
+      }}
+    >
+      <AlbumCover album={album} size={48} />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: 14,
+          fontWeight: 500,
+          color: C.textPrimary,
+          marginBottom: 3,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}>
+          {song.title}
+        </div>
+        <div style={{
+          fontSize: 11,
+          color: C.textMuted,
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: "0.02em",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}>
+          {album ? `${album.name} · ${album.year}` : ""}
+        </div>
+      </div>
+
+      {isSelected && (
+        <div style={{
+          width: 28,
+          height: 28,
+          background: C.accent,
+          color: C.bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          <Check size={16} strokeWidth={3} />
+        </div>
+      )}
+    </button>
+  );
+});
 
 function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack, onComplete }) {
   const isComplete = selected.length === MAX_PICKS;
@@ -692,107 +676,82 @@ function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack
   );
 }
 
-function ProgressTrack({ selected }) {
+function RankingRow({ position, song, album, votes, barWidth, isMine, isTop5 }) {
   return (
-    <div style={{ display: "flex", gap: 3 }}>
-      {Array.from({ length: MAX_PICKS }, (_, i) => {
-        const filled = i < selected.length;
-        return (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: 3,
-              background: filled ? C.accent : C.border,
-              transition: "background 0.2s",
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
+    <div style={{
+      position: "relative",
+      padding: "10px 12px",
+      background: isMine ? `${C.accent}0D` : C.surface,
+      border: isMine ? `1px solid ${C.accent}` : `1px solid ${C.border}`,
+      overflow: "hidden",
+    }}>
+      <div style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: `${barWidth}%`,
+        background: isMine ? `${C.accent}2E` : `${C.textSecondary}20`,
+        transition: "width 0.3s",
+        pointerEvents: "none",
+      }} />
 
-const SongCard = memo(function SongCard({ song, isSelected, onToggle, disabled }) {
-  const album = ALBUMS[song.album];
-
-  return (
-    <button
-      onClick={onToggle}
-      disabled={disabled}
-      style={{
+      <div style={{
+        position: "relative",
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: 10,
-        background: isSelected ? C.surface : "transparent",
-        border: isSelected
-          ? `1px solid ${C.accent}`
-          : `1px solid ${C.border}`,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.35 : 1,
-        textAlign: "left",
-        width: "100%",
-        transition: "all 0.15s",
-        fontFamily: "inherit",
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled && !isSelected) {
-          e.currentTarget.style.background = C.surfaceHover;
-          e.currentTarget.style.borderColor = C.textMuted;
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled && !isSelected) {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.borderColor = C.border;
-        }
-      }}
-    >
-      <AlbumCover album={album} size={48} />
-
-      <div style={{ flex: 1, minWidth: 0 }}>
+      }}>
         <div style={{
-          fontSize: 14,
-          fontWeight: 500,
-          color: C.textPrimary,
-          marginBottom: 3,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}>
-          {song.title}
-        </div>
-        <div style={{
-          fontSize: 11,
-          color: C.textMuted,
+          minWidth: 28,
           fontFamily: "'JetBrains Mono', monospace",
-          letterSpacing: "0.02em",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          fontSize: isTop5 ? 16 : 13,
+          fontWeight: 700,
+          color: isTop5 ? C.accent : C.textMuted,
+          textAlign: "center",
         }}>
-          {album ? `${album.name} · ${album.year}` : ""}
+          {position}
         </div>
-      </div>
 
-      {isSelected && (
-        <div style={{
-          width: 28,
-          height: 28,
-          background: C.accent,
-          color: C.bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}>
-          <Check size={16} strokeWidth={3} />
+        <AlbumCover album={album} size={36} />
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: isMine ? C.accent : C.textPrimary,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            marginBottom: 2,
+          }}>
+            {song.title}
+          </div>
+          <div style={{
+            fontSize: 10,
+            color: C.textMuted,
+            fontFamily: "'JetBrains Mono', monospace",
+          }}>
+            {votes.toLocaleString()}표
+          </div>
         </div>
-      )}
-    </button>
+
+        {isMine && (
+          <div style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: C.accent,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: "0.1em",
+            flexShrink: 0,
+          }}>
+            MY PICK
+          </div>
+        )}
+      </div>
+    </div>
   );
-});
+}
 
 function ResultScreen({ selected, topRanking, onReset }) {
   const [showAll, setShowAll] = useState(false);
@@ -808,19 +767,16 @@ function ResultScreen({ selected, topRanking, onReset }) {
     window.open(url, "_blank");
   };
 
-  // 기본 5위까지, 더보기 누르면 20위까지
   const TOP_SHOW = 20;
   const INITIAL_SHOW = 5;
   const fullRanking = topRanking.slice(0, TOP_SHOW);
   const displayRanking = showAll ? fullRanking : fullRanking.slice(0, INITIAL_SHOW);
   const maxVotes = fullRanking[0]?.votes || 1;
 
-  // 내가 고른 곡을 랭킹 순으로 정렬
   const sortedMyPicks = useMemo(() => {
     return [...selected].sort((a, b) => {
       const rankA = topRanking.findIndex(r => r.songId === a);
       const rankB = topRanking.findIndex(r => r.songId === b);
-      // 랭킹에 없는 곡은 뒤로
       const effA = rankA === -1 ? Infinity : rankA;
       const effB = rankB === -1 ? Infinity : rankB;
       return effA - effB;
@@ -830,7 +786,6 @@ function ResultScreen({ selected, topRanking, onReset }) {
   return (
     <div style={{ minHeight: "100vh", padding: "20px 20px 40px" }}>
       <div style={{ maxWidth: 520, margin: "0 auto" }}>
-        {/* 핸디버스 배너 */}
         <a
           href="https://www.handybus.co.kr/shuttle/693679820533405207"
           target="_blank"
@@ -893,7 +848,6 @@ function ResultScreen({ selected, topRanking, onReset }) {
           <ExternalLink size={14} color={C.textMuted} style={{ flexShrink: 0 }} />
         </a>
 
-        {/* 전체 팬 랭킹 */}
         <div style={{ marginBottom: 20 }}>
           <div style={{
             fontFamily: "'JetBrains Mono', monospace",
@@ -938,7 +892,6 @@ function ResultScreen({ selected, topRanking, onReset }) {
           })}
         </div>
 
-        {/* 더보기 / 접기 버튼 */}
         {fullRanking.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAll(!showAll)}
@@ -982,7 +935,6 @@ function ResultScreen({ selected, topRanking, onReset }) {
           </button>
         )}
 
-        {/* 내가 선택한 곡 */}
         <div style={{ marginBottom: 20 }}>
           <div style={{
             fontFamily: "'JetBrains Mono', monospace",
@@ -1045,7 +997,6 @@ function ResultScreen({ selected, topRanking, onReset }) {
           })}
         </div>
 
-        {/* 버튼 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button
             onClick={handleShare}
@@ -1116,81 +1067,90 @@ function ResultScreen({ selected, topRanking, onReset }) {
   );
 }
 
-function RankingRow({ position, song, album, votes, barWidth, isMine, isTop5 }) {
+export default function App() {
+  const [screen, setScreen] = useState("home");
+  const [selected, setSelected] = useState([]);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const fontId = "lsy-concert-fonts";
+    if (document.getElementById(fontId)) return;
+
+    const preconnect1 = document.createElement("link");
+    preconnect1.rel = "preconnect";
+    preconnect1.href = "https://fonts.googleapis.com";
+    document.head.appendChild(preconnect1);
+
+    const preconnect2 = document.createElement("link");
+    preconnect2.rel = "preconnect";
+    preconnect2.href = "https://fonts.gstatic.com";
+    preconnect2.crossOrigin = "anonymous";
+    document.head.appendChild(preconnect2);
+
+    const link = document.createElement("link");
+    link.id = fontId;
+    link.href = "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }, []);
+
+  const filteredSongs = useMemo(() => {
+    if (!search.trim()) return SONGS;
+    const q = search.toLowerCase();
+    return SONGS.filter(s => {
+      const album = ALBUMS[s.album];
+      return s.title.toLowerCase().includes(q) ||
+             (album && album.name.toLowerCase().includes(q));
+    });
+  }, [search]);
+
+  const toggleSelect = (songId) => {
+    if (selected.includes(songId)) {
+      setSelected(selected.filter(id => id !== songId));
+    } else if (selected.length < MAX_PICKS) {
+      setSelected([...selected, songId]);
+    }
+  };
+
+  const resetAll = () => {
+    setSelected([]);
+    setScreen("home");
+    setSearch("");
+  };
+
+  const topRanking = useMemo(() => {
+    return Object.entries(MOCK_VOTES)
+      .map(([id, votes]) => ({ songId: Number(id), votes }))
+      .sort((a, b) => b.votes - a.votes);
+  }, []);
+
   return (
     <div style={{
-      position: "relative",
-      padding: "10px 12px",
-      background: isMine ? `${C.accent}0D` : C.surface,
-      border: isMine ? `1px solid ${C.accent}` : `1px solid ${C.border}`,
-      overflow: "hidden",
+      minHeight: "100vh",
+      background: C.bg,
+      fontFamily: "'Noto Sans KR', sans-serif",
+      color: C.textPrimary,
+      WebkitFontSmoothing: "antialiased",
     }}>
-      {/* 투표 비율 막대 (배경) */}
-      <div style={{
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: `${barWidth}%`,
-        background: isMine ? `${C.accent}2E` : `${C.textSecondary}20`,
-        transition: "width 0.3s",
-        pointerEvents: "none",
-      }} />
-
-      <div style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-      }}>
-        {/* 순위 */}
-        <div style={{
-          minWidth: 28,
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: isTop5 ? 16 : 13,
-          fontWeight: 700,
-          color: isTop5 ? C.accent : C.textMuted,
-          textAlign: "center",
-        }}>
-          {position}
-        </div>
-
-        <AlbumCover album={album} size={36} />
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: isMine ? C.accent : C.textPrimary,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            marginBottom: 2,
-          }}>
-            {song.title}
-          </div>
-          <div style={{
-            fontSize: 10,
-            color: C.textMuted,
-            fontFamily: "'JetBrains Mono', monospace",
-          }}>
-            {votes.toLocaleString()}표
-          </div>
-        </div>
-
-        {isMine && (
-          <div style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: C.accent,
-            fontFamily: "'JetBrains Mono', monospace",
-            letterSpacing: "0.1em",
-            flexShrink: 0,
-          }}>
-            MY PICK
-          </div>
-        )}
-      </div>
+      {screen === "home" && <HomeScreen onStart={() => setScreen("select")} />}
+      {screen === "select" && (
+        <SelectScreen
+          songs={filteredSongs}
+          selected={selected}
+          search={search}
+          setSearch={setSearch}
+          toggleSelect={toggleSelect}
+          onBack={() => setScreen("home")}
+          onComplete={() => setScreen("result")}
+        />
+      )}
+      {screen === "result" && (
+        <ResultScreen
+          selected={selected}
+          topRanking={topRanking}
+          onReset={resetAll}
+        />
+      )}
     </div>
   );
 }
