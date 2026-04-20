@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, memo } from "react";
 import { Search, X, Share2, RotateCcw, ArrowLeft, Check, Bus, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { saveVote, getVoteResults, hasVoted } from './votes';
 
 const ALBUMS = {
   MUEOL: { name: "무얼 훔치지", year: 2016, type: "정규 1집", cover: { bg: "#4A3728", accent: "#E8D4A3", style: "hands", label: "窃" } },
@@ -506,7 +507,7 @@ const SongCard = memo(function SongCard({ song, isSelected, onToggle, disabled }
   );
 });
 
-function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack, onComplete }) {
+function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack, onComplete, isSubmitting }) {
   const isComplete = selected.length === MAX_PICKS;
 
   return (
@@ -651,26 +652,26 @@ function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack
         zIndex: 50,
       }}>
         <button
-          onClick={onComplete}
-          disabled={!isComplete}
-          style={{
-            width: "100%",
-            padding: "16px",
-            fontSize: 15,
-            fontWeight: 700,
-            letterSpacing: "0.02em",
-            background: isComplete ? C.accent : C.surface,
-            color: isComplete ? C.bg : C.textMuted,
-            border: isComplete ? "none" : `1px solid ${C.border}`,
-            cursor: isComplete ? "pointer" : "not-allowed",
-            fontFamily: "inherit",
-            transition: "opacity 0.15s",
-          }}
-          onMouseEnter={(e) => { if (isComplete) e.currentTarget.style.opacity = "0.85"; }}
-          onMouseLeave={(e) => { if (isComplete) e.currentTarget.style.opacity = "1"; }}
-        >
-          {isComplete ? "선택 완료" : `${MAX_PICKS - selected.length}곡 더 선택해주세요`}
-        </button>
+  onClick={onComplete}
+  disabled={!isComplete || isSubmitting}
+  style={{
+    width: "100%",
+    padding: "16px",
+    fontSize: 15,
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+    background: isComplete && !isSubmitting ? C.accent : C.surface,
+    color: isComplete && !isSubmitting ? C.bg : C.textMuted,
+    border: isComplete && !isSubmitting ? "none" : `1px solid ${C.border}`,
+    cursor: (isComplete && !isSubmitting) ? "pointer" : "not-allowed",
+    fontFamily: "inherit",
+    transition: "opacity 0.15s",
+  }}
+  onMouseEnter={(e) => { if (isComplete && !isSubmitting) e.currentTarget.style.opacity = "0.85"; }}
+  onMouseLeave={(e) => { if (isComplete && !isSubmitting) e.currentTarget.style.opacity = "1"; }}
+>
+  {isSubmitting ? "저장 중..." : isComplete ? "선택 완료" : `${MAX_PICKS - selected.length}곡 더 선택해주세요`}
+</button>
       </div>
     </div>
   );
@@ -1071,6 +1072,9 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState("");
+  const [voteResults, setVoteResults] = useState({}); // DB에서 받은 투표 결과
+  const [isSubmitting, setIsSubmitting] = useState(false); // 투표 저장 중 상태
+  const [alreadyVoted, setAlreadyVoted] = useState(false); // 이미 투표했는지
 
   useEffect(() => {
     const fontId = "lsy-concert-fonts";
@@ -1094,14 +1098,20 @@ export default function App() {
     document.head.appendChild(link);
   }, []);
 
+  // 앱 시작 시 이미 투표했는지 확인
+  useEffect(() => {
+    hasVoted().then(voted => {
+      setAlreadyVoted(voted);
+    });
+  }, []);
+
   const filteredSongs = useMemo(() => {
-    // 최신 앨범 먼저 정렬 (년도 내림차순)
     const sortedSongs = [...SONGS].sort((a, b) => {
       const albumA = ALBUMS[a.album];
       const albumB = ALBUMS[b.album];
       const yearA = albumA?.year || 0;
       const yearB = albumB?.year || 0;
-      return yearB - yearA; // 내림차순 (최신 먼저)
+      return yearB - yearA;
     });
     
     if (!search.trim()) return sortedSongs;
@@ -1121,17 +1131,39 @@ export default function App() {
     }
   };
 
+  // 선택 완료 → DB에 저장 + 결과 받아오기
+  const handleComplete = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. 투표 저장
+      await saveVote(selected);
+      
+      // 2. 전체 투표 결과 받아오기
+      const results = await getVoteResults();
+      setVoteResults(results);
+      
+      // 3. 결과 화면으로 이동
+      setScreen("result");
+    } catch (error) {
+      alert('투표 저장 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const resetAll = () => {
     setSelected([]);
     setScreen("home");
     setSearch("");
   };
 
+  // DB 데이터를 랭킹 형식으로 변환
   const topRanking = useMemo(() => {
-    return Object.entries(MOCK_VOTES)
+    return Object.entries(voteResults)
       .map(([id, votes]) => ({ songId: Number(id), votes }))
       .sort((a, b) => b.votes - a.votes);
-  }, []);
+  }, [voteResults]);
 
   return (
     <div style={{
@@ -1150,7 +1182,8 @@ export default function App() {
           setSearch={setSearch}
           toggleSelect={toggleSelect}
           onBack={() => setScreen("home")}
-          onComplete={() => setScreen("result")}
+          onComplete={handleComplete}
+          isSubmitting={isSubmitting}
         />
       )}
       {screen === "result" && (
