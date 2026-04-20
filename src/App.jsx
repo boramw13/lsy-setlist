@@ -1095,9 +1095,18 @@ export default function App() {
   }, []);
 
   const filteredSongs = useMemo(() => {
-    if (!search.trim()) return SONGS;
+    // 최신 앨범 먼저 정렬 (년도 내림차순)
+    const sortedSongs = [...SONGS].sort((a, b) => {
+      const albumA = ALBUMS[a.album];
+      const albumB = ALBUMS[b.album];
+      const yearA = albumA?.year || 0;
+      const yearB = albumB?.year || 0;
+      return yearB - yearA; // 내림차순 (최신 먼저)
+    });
+    
+    if (!search.trim()) return sortedSongs;
     const q = search.toLowerCase();
-    return SONGS.filter(s => {
+    return sortedSongs.filter(s => {
       const album = ALBUMS[s.album];
       return s.title.toLowerCase().includes(q) ||
              (album && album.name.toLowerCase().includes(q));
