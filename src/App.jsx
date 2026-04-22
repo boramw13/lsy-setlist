@@ -329,77 +329,62 @@ function HomeScreen({ onStart }) {
   return (
     <div style={{
       minHeight: "100vh",
+      background: "#000000",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: "48px 24px",
+      padding: "0",
     }}>
-      <div style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
-        <div style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
-          letterSpacing: "0.25em",
-          color: C.accent,
-          marginBottom: 32,
-          fontWeight: 500,
-        }}>
-          2026.05.16 — 05.17 · KINTEX
-        </div>
+      {/* 모바일 크기로 제한된 컨테이너 */}
+      <div style={{
+        width: "100%",
+        maxWidth: 430, // 모바일 크기 (iPhone Pro Max 기준)
+        position: "relative",
+      }}>
+        {/* 배경 이미지 (전체 디자인) */}
+        <img
+          src="/home.png"
+          alt="이승윤 콘서트 밖 - 셋리스트 맞추기"
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+          }}
+        />
 
-        <h1 style={{
-          fontSize: 24,
-          fontWeight: 900,
-          lineHeight: 1.4,
-          margin: "0 0 20px",
-          letterSpacing: "-0.02em",
-          color: C.textPrimary,
-        }}>
-          이승윤 콘서트 <span style={{ color: C.accent }}>『밖』</span><br/>
-          셋리스트 맞추기
-        </h1>
-
-        <p style={{
-          fontSize: 16,
-          lineHeight: 1.6,
-          color: C.textSecondary,
-          margin: "0 0 56px",
-          fontWeight: 400,
-        }}>
-          이번 콘서트에서 불러주길 바라는<br/>
-          노래 <span style={{ color: C.accent, fontWeight: 700 }}>5곡</span>을 골라봐!
-        </p>
-
+        {/* 시작하기 버튼 - 이미지의 시작하기 자리에 오버레이 */}
         <button
           onClick={onStart}
           style={{
-            width: "100%",
-            padding: "18px 24px",
-            background: C.accent,
-            color: C.bg,
+            position: "absolute",
+            top: "60%", // 이미지 세로 위치 - 조정 필요할 수 있음
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "60%",
+            maxWidth: 280,
+            padding: "14px 32px",
+            background: "#000000",
+            color: "#FFFFFF",
             border: "none",
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: 700,
-            letterSpacing: "0.02em",
+            letterSpacing: "0.05em",
             cursor: "pointer",
-            fontFamily: "inherit",
-            transition: "opacity 0.15s",
+            fontFamily: "'Noto Sans KR', sans-serif",
+            transition: "all 0.15s",
           }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translate(-50%, -50%) scale(1.02)";
+            e.currentTarget.style.background = "#1a1a1a";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translate(-50%, -50%) scale(1)";
+            e.currentTarget.style.background = "#000000";
+          }}
         >
           시작하기
         </button>
-
-        <div style={{
-          marginTop: 56,
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 10,
-          color: C.textMuted,
-          letterSpacing: "0.2em",
-        }}>
-          LSY · NOL · WANDERLOCH
-        </div>
       </div>
     </div>
   );
@@ -652,26 +637,26 @@ function SelectScreen({ songs, selected, search, setSearch, toggleSelect, onBack
         zIndex: 50,
       }}>
         <button
-  onClick={onComplete}
-  disabled={!isComplete || isSubmitting}
-  style={{
-    width: "100%",
-    padding: "16px",
-    fontSize: 15,
-    fontWeight: 700,
-    letterSpacing: "0.02em",
-    background: isComplete && !isSubmitting ? C.accent : C.surface,
-    color: isComplete && !isSubmitting ? C.bg : C.textMuted,
-    border: isComplete && !isSubmitting ? "none" : `1px solid ${C.border}`,
-    cursor: (isComplete && !isSubmitting) ? "pointer" : "not-allowed",
-    fontFamily: "inherit",
-    transition: "opacity 0.15s",
-  }}
-  onMouseEnter={(e) => { if (isComplete && !isSubmitting) e.currentTarget.style.opacity = "0.85"; }}
-  onMouseLeave={(e) => { if (isComplete && !isSubmitting) e.currentTarget.style.opacity = "1"; }}
->
-  {isSubmitting ? "저장 중..." : isComplete ? "선택 완료" : `${MAX_PICKS - selected.length}곡 더 선택해주세요`}
-</button>
+          onClick={onComplete}
+          disabled={!isComplete}
+          style={{
+            width: "100%",
+            padding: "16px",
+            fontSize: 15,
+            fontWeight: 700,
+            letterSpacing: "0.02em",
+            background: isComplete ? C.accent : C.surface,
+            color: isComplete ? C.bg : C.textMuted,
+            border: isComplete ? "none" : `1px solid ${C.border}`,
+            cursor: isComplete ? "pointer" : "not-allowed",
+            fontFamily: "inherit",
+            transition: "opacity 0.15s",
+          }}
+          onMouseEnter={(e) => { if (isComplete) e.currentTarget.style.opacity = "0.85"; }}
+          onMouseLeave={(e) => { if (isComplete) e.currentTarget.style.opacity = "1"; }}
+        >
+          {isComplete ? "선택 완료" : `${MAX_PICKS - selected.length}곡 더 선택해주세요`}
+        </button>
       </div>
     </div>
   );
