@@ -746,7 +746,7 @@ function RankingRow({ position, song, album, votes, barWidth, isMine, isTop5 }) 
   );
 }
 
-function ResultScreen({ selected, topRanking, onReset }) {
+function ResultScreen({ selected, topRanking, onReset, isSharedView }) {
   const [showAll, setShowAll] = useState(false);
   const getSong = (id) => SONGS.find(s => s.id === id);
 
@@ -755,10 +755,13 @@ function ResultScreen({ selected, topRanking, onReset }) {
   }, []);
 
   const handleShare = () => {
-    const text = `이승윤 콘서트 [밖]에서 불러주길 바라는 노래 5곡을 골라봤어!\n\n두근두근, 실제 셋리스트는 무엇일까?`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
-  };
+  // 현재 URL에 내가 고른 곡이 포함됨
+  const shareUrl = window.location.href;
+  
+  const text = `나는 이승윤 콘서트 [밖]에서 이 5곡을 듣고 싶어! 🎸\n\n너도 골라봐 👇\n${shareUrl}\n\n#이승윤 #이승윤밖`;
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+};
 
   const TOP_SHOW = 20;
   const INITIAL_SHOW = 5;
@@ -991,55 +994,64 @@ function ResultScreen({ selected, topRanking, onReset }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button
-            onClick={handleShare}
-            style={{
-              width: "100%",
-              padding: "16px",
-              fontSize: 15,
-              fontWeight: 700,
-              background: C.accent,
-              color: C.bg,
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-          >
-            <Share2 size={16} />
-            트위터에 공유하기
-          </button>
-          <button
-            onClick={onReset}
-            style={{
-              width: "100%",
-              padding: "14px",
-              fontSize: 13,
-              fontWeight: 500,
-              background: "transparent",
-              color: C.textSecondary,
-              border: `1px solid ${C.border}`,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              transition: "border-color 0.15s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = C.textMuted}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = C.border}
-          >
-            <RotateCcw size={14} />
-            다시 선택하기
-          </button>
-        </div>
+  {!isSharedView && (
+    <button
+      onClick={handleShare}
+      style={{
+        width: "100%",
+        padding: "16px",
+        fontSize: 15,
+        fontWeight: 700,
+        background: C.accent,
+        color: C.bg,
+        border: "none",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        transition: "opacity 0.15s",
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
+      onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+    >
+      <Share2 size={16} />
+      트위터에 공유하기
+    </button>
+  )}
+  
+  <button
+    onClick={onReset}
+    style={{
+      width: "100%",
+      padding: "16px",
+      fontSize: 15,
+      fontWeight: 700,
+      background: isSharedView ? C.accent : "transparent",
+      color: isSharedView ? C.bg : C.textSecondary,
+      border: isSharedView ? "none" : `1px solid ${C.border}`,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      transition: "border-color 0.15s",
+    }}
+    onMouseEnter={(e) => {
+      if (!isSharedView) e.currentTarget.style.borderColor = C.textMuted;
+      else e.currentTarget.style.opacity = "0.85";
+    }}
+    onMouseLeave={(e) => {
+      if (!isSharedView) e.currentTarget.style.borderColor = C.border;
+      else e.currentTarget.style.opacity = "1";
+    }}
+  >
+    <RotateCcw size={14} />
+    {isSharedView ? "나도 셋리스트 골라보기" : "다시 선택하기"}
+  </button>
+</div>
 
         <div style={{
           marginTop: 48,
@@ -1064,9 +1076,10 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState("");
-  const [voteResults, setVoteResults] = useState({}); // DB에서 받은 투표 결과
-  const [isSubmitting, setIsSubmitting] = useState(false); // 투표 저장 중 상태
-  const [alreadyVoted, setAlreadyVoted] = useState(false); // 이미 투표했는지
+  const [voteResults, setVoteResults] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alreadyVoted, setAlreadyVoted] = useState(false);
+  const [isSharedView, setIsSharedView] = useState(false); // 공유 링크로 들어왔는지
 
   useEffect(() => {
     const fontId = "lsy-concert-fonts";
@@ -1090,7 +1103,28 @@ export default function App() {
     document.head.appendChild(link);
   }, []);
 
-  // 앱 시작 시 이미 투표했는지 확인
+  // 🆕 URL에서 picks 파라미터 읽기 (공유 링크로 들어온 경우)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const picksParam = urlParams.get('picks');
+    
+    if (picksParam) {
+      // URL에서 곡 ID 추출
+      const songIds = picksParam.split(',').map(id => Number(id)).filter(id => !isNaN(id));
+      
+      if (songIds.length > 0) {
+        setSelected(songIds);
+        setIsSharedView(true);
+        
+        // 전체 투표 결과 가져와서 결과 페이지로 이동
+        getVoteResults().then(results => {
+          setVoteResults(results);
+          setScreen("result");
+        });
+      }
+    }
+  }, []);
+
   useEffect(() => {
     hasVoted().then(voted => {
       setAlreadyVoted(voted);
@@ -1123,18 +1157,18 @@ export default function App() {
     }
   };
 
-  // 선택 완료 → DB에 저장 + 결과 받아오기
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      // 1. 투표 저장
       await saveVote(selected);
-      
-      // 2. 전체 투표 결과 받아오기
       const results = await getVoteResults();
       setVoteResults(results);
       
-      // 3. 결과 화면으로 이동
+      // 🆕 URL 업데이트 (브라우저 히스토리에 추가)
+      const picksString = selected.join(',');
+      const newUrl = `${window.location.pathname}?picks=${picksString}`;
+      window.history.pushState({}, '', newUrl);
+      
       setScreen("result");
     } catch (error) {
       alert('투표 저장 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
@@ -1148,9 +1182,12 @@ export default function App() {
     setSelected([]);
     setScreen("home");
     setSearch("");
+    setIsSharedView(false);
+    
+    // 🆕 URL에서 picks 파라미터 제거
+    window.history.pushState({}, '', window.location.pathname);
   };
 
-  // DB 데이터를 랭킹 형식으로 변환
   const topRanking = useMemo(() => {
     return Object.entries(voteResults)
       .map(([id, votes]) => ({ songId: Number(id), votes }))
@@ -1183,6 +1220,7 @@ export default function App() {
           selected={selected}
           topRanking={topRanking}
           onReset={resetAll}
+          isSharedView={isSharedView}
         />
       )}
     </div>
