@@ -328,37 +328,44 @@ const AlbumCover = memo(function AlbumCover({ album, size = 48 }) {
 function HomeScreen({ onStart }) {
   return (
     <div style={{
-      minHeight: "100vh",
+      height: "100vh",
+      width: "100%",
       background: "#000000",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       padding: "0",
+      overflow: "hidden",
     }}>
       {/* 모바일 크기로 제한된 컨테이너 */}
       <div style={{
         width: "100%",
-        maxWidth: 430, // 모바일 크기 (iPhone Pro Max 기준)
+        maxWidth: 430,
+        height: "100%",
         position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}>
-        {/* 배경 이미지 (전체 디자인) */}
+        {/* 배경 이미지 */}
         <img
           src="/home.png"
           alt="이승윤 콘서트 밖 - 셋리스트 맞추기"
           style={{
             width: "100%",
-            height: "auto",
+            maxHeight: "100%",
+            objectFit: "contain",
             display: "block",
           }}
         />
 
-        {/* 시작하기 버튼 - 이미지의 시작하기 자리에 오버레이 */}
+        {/* 시작하기 버튼 */}
         <button
           onClick={onStart}
           style={{
             position: "absolute",
-            top: "60%", // 이미지 세로 위치 - 조정 필요할 수 있음
+            top: "68%",
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: "60%",
